@@ -1,0 +1,41 @@
+.quizaccess-proctorcore-status {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: .375rem;
+    display: flex;
+    gap: .75rem;
+    justify-content: space-between;
+    margin: .75rem auto;
+    max-width: 72rem;
+    padding: .625rem .875rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.quizaccess-proctorcore-status.is-connected {
+    background: #eaf7ee;
+    border-color: #9bd3aa;
+    color: #145c2b;
+}
+
+.quizaccess-proctorcore-status.is-reconnecting {
+    background: #fff7df;
+    border-color: #e6c75f;
+    color: #6a5200;
+}
+
+.quizaccess-proctorcore-status.is-lost,
+.quizaccess-proctorcore-status.is-interrupted {
+    background: #fdecec;
+    border-color: #e39a9a;
+    color: #842029;
+}
+
+.quizaccess-proctorcore-status-text {
+    font-weight: 600;
+}
+
+.quizaccess-proctorcore-reconnect {
+    flex: 0 0 auto;
+}
