@@ -373,7 +373,7 @@ final class settings_service {
             'courseid' => $courseid,
             'quizid' => $quizid,
             'enabled' => 0,
-            'requireidentity' => 0,
+            'requireidentity' => 1,
             'requiretechcheck' => 1,
             'requirerulesack' => 1,
             'allowresume' => 1,
