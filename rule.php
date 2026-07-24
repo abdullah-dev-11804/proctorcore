@@ -187,8 +187,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $repository = new \local_proctorcore\local\session_repository();
         $session = $repository->get_by_attempt_and_user((int) $attemptid, (int) $USER->id);
         return !$session
-            || $session->techcheckstatus !== 'passed'
-            || !in_array((string) $session->identitystatus, ['passed', 'notrequired'], true);
+            || $session->techcheckstatus !== 'passed';
     }
 
     /**
@@ -235,12 +234,6 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $mform->setExpanded('proctorcore_precheck_header');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
 
-        $identitypanelid = 'local-proctorcore-student-identity';
-        if (!function_exists('local_proctorcore_render_identity_panel')) {
-            throw new \moodle_exception('error:missinglocalplugin', 'quizaccess_proctorcore');
-        }
-        $mform->addElement('html', local_proctorcore_render_identity_panel($identitypanelid));
-
         $hidden = [
             'proctorcore_preflight_passed' => 0,
             'proctorcore_preflight_server' => 0,
@@ -257,9 +250,6 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'proctorcore_preflight_browsername' => '',
             'proctorcore_preflight_browserversion' => '',
             'proctorcore_preflight_token' => $token,
-            'proctorcore_identity_passed' => 0,
-            'proctorcore_identity_status' => '',
-            'proctorcore_identity_score' => '',
         ];
         foreach ($hidden as $name => $value) {
             $mform->addElement('hidden', $name, $value);
@@ -284,56 +274,19 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $mform->setType('proctorcore_preflight_browsername', PARAM_TEXT);
         $mform->setType('proctorcore_preflight_browserversion', PARAM_TEXT);
         $mform->setType('proctorcore_preflight_token', PARAM_ALPHANUM);
-        $mform->setType('proctorcore_identity_passed', PARAM_INT);
-        $mform->setType('proctorcore_identity_status', PARAM_ALPHANUMEXT);
-        $mform->setType('proctorcore_identity_score', PARAM_FLOAT);
-
         $PAGE->requires->css('/local/proctorcore/styles.css');
         $PAGE->requires->js_call_amd('local_proctorcore/precheck', 'init', [[
             'panelId' => $panelid,
             'previewMode' => false,
             'serverHealthy' => $serverhealthy,
             'requireHttps' => !empty($config->requirehttps),
-            'requireCamera' => !empty($config->requirecamera) || !empty($config->requireidentity),
+            'requireCamera' => !empty($config->requirecamera),
             'requireMicrophone' => !empty($config->requiremicrophone),
             'requireSnapshot' => !empty($config->requiresnapshot),
             'minimumSpeedMbps' => (float) $localconfig->minimumspeedmbps,
             'minimumLighting' => (int) $localconfig->minimumlighting,
             'pingUrl' => (new moodle_url('/local/proctorcore/precheck_ping.php'))->out(false),
             'strings' => $this->precheck_strings(),
-        ]]);
-
-        $mlhealthy = empty($localconfig->identityenabled);
-        if (!empty($localconfig->identityenabled)) {
-            try {
-                $mlhealth = (new \local_proctorcore\local\ml_client($companyid))->health();
-                $mlhealthy = !empty($mlhealth['ok']) || (($mlhealth['status'] ?? '') === 'healthy');
-            } catch (\Throwable $exception) {
-                debugging('ProctorCore ML health check failed: ' . $exception->getMessage(), DEBUG_DEVELOPER);
-                $mlhealthy = false;
-            }
-        }
-
-        $PAGE->requires->js_call_amd('local_proctorcore/identity_check', 'init', [[
-            'panelId' => $identitypanelid,
-            'quizId' => (int) $this->quiz->id,
-            'endpoint' => (new moodle_url('/local/proctorcore/identity_verify.php'))->out(false),
-            'sesskey' => sesskey(),
-            'required' => !empty($config->requireidentity),
-            'mlHealthy' => $mlhealthy,
-            'strings' => [
-                'waitingForPrecheck' => get_string('identity:waitingforprecheck', 'local_proctorcore'),
-                'ready' => get_string('identity:ready', 'local_proctorcore'),
-                'lookStraight' => get_string('identity:lookstraight', 'local_proctorcore'),
-                'turnLeft' => get_string('identity:turnleft', 'local_proctorcore'),
-                'turnRight' => get_string('identity:turnright', 'local_proctorcore'),
-                'comparing' => get_string('identity:comparing', 'local_proctorcore'),
-                'passed' => get_string('identity:passed', 'local_proctorcore'),
-                'failed' => get_string('identity:failed', 'local_proctorcore'),
-                'notRequired' => get_string('precheck:notrequired', 'local_proctorcore'),
-                'serviceUnavailable' => get_string('identity:serviceunavailable', 'local_proctorcore'),
-                'invalidResponse' => get_string('capture:invalidresponse', 'local_proctorcore'),
-            ],
         ]]);
     }
 
@@ -383,7 +336,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
     }
 
     /**
-     * Activate the session, load camera/microphone capture, heartbeat, and recovery UI.
+     * Activate the session, load heartbeat, and recovery UI.
      *
      * @param moodle_page $page Attempt page.
      * @return void
@@ -405,15 +358,11 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         try {
             $session = $service->ensure_active_session((int) $attempt->id, (int) $USER->id);
             if (!function_exists('local_proctorcore_require_heartbeat')
-                    || !function_exists('local_proctorcore_require_capture')
-                    || !function_exists('local_proctorcore_require_monitor')
                     || !function_exists('local_proctorcore_get_reconnect_url')) {
                 throw new \moodle_exception('error:missingrecoveryapi', 'quizaccess_proctorcore');
             }
 
             local_proctorcore_require_heartbeat((int) $session->id);
-            local_proctorcore_require_capture((int) $session->id);
-            local_proctorcore_require_monitor((int) $session->id);
             $page->requires->css('/mod/quiz/accessrule/proctorcore/styles.css');
             $page->requires->js_call_amd('quizaccess_proctorcore/recovery_ui', 'init', [[
                 'sessionId' => (int) $session->id,
@@ -494,7 +443,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $mform->addHelpButton('proctorcore_enabled', 'enabled', 'quizaccess_proctorcore');
         $mform->setDefault('proctorcore_enabled', 0);
 
-        foreach (['requirehttps', 'requirecamera', 'requiremicrophone', 'requireidentity', 'requiresnapshot'] as $name) {
+        foreach (['requirehttps', 'requirecamera', 'requiremicrophone', 'requiresnapshot'] as $name) {
             $field = 'proctorcore_' . $name;
             $mform->addElement('advcheckbox', $field, get_string($name, 'quizaccess_proctorcore'));
             $mform->addHelpButton($field, $name, 'quizaccess_proctorcore');
@@ -634,7 +583,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'proctorcore_requirehttps' => (int) ($config->requirehttps ?? 1),
             'proctorcore_requirecamera' => (int) ($config->requirecamera ?? 1),
             'proctorcore_requiremicrophone' => (int) ($config->requiremicrophone ?? 1),
-            'proctorcore_requireidentity' => (int) ($config->requireidentity ?? 1),
+            'proctorcore_requireidentity' => 0,
             'proctorcore_requiresnapshot' => (int) ($config->requiresnapshot ?? 1),
             'proctorcore_allowresume' => (int) ($config->allowresume ?? 1),
             'proctorcore_resumewindowsecs' => (int) ($config->resumewindowsecs ?? 600),

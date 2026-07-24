@@ -188,19 +188,15 @@ final class gate_service {
                 throw new \moodle_exception('error:missingserversession', 'quizaccess_proctorcore');
             }
 
-            $localtest = class_exists('\local_proctorcore\local\local_capture_storage')
-                && \local_proctorcore\local\local_capture_storage::is_enabled();
-            if (!$localtest) {
-                $client = new \local_proctorcore\local\server_client((int) $session->companyid);
-                $client->start_session((string) $session->server_sessionid, [
-                    'moodleSessionId' => (int) $session->id,
-                    'companyId' => (int) $session->companyid,
-                    'attemptId' => (int) $session->attemptid,
-                    'userId' => (int) $session->userid,
-                    'startedAt' => gmdate('c'),
-                    'source' => 'quizaccess_proctorcore',
-                ]);
-            }
+            $client = new \local_proctorcore\local\server_client((int) $session->companyid);
+            $client->start_session((string) $session->server_sessionid, [
+                'moodleSessionId' => (int) $session->id,
+                'companyId' => (int) $session->companyid,
+                'attemptId' => (int) $session->attemptid,
+                'userId' => (int) $session->userid,
+                'startedAt' => gmdate('c'),
+                'source' => 'quizaccess_proctorcore',
+            ]);
 
             $repository->update_status((int) $session->id, 'active');
             return $repository->get_by_id((int) $session->id);
