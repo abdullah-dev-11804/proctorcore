@@ -225,6 +225,12 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
 
         $localconfig = (new \local_proctorcore\local\company_config_repository())
             ->get_effective_config($companyid);
+        $enrollmentrequired = false;
+        if (!empty($config->requireidentity) && class_exists('\local_proctorcore\local\face_enrollment_repository')) {
+            $enrollmentrequired = !(new \local_proctorcore\local\face_enrollment_repository())
+                ->has_active((int) $USER->id);
+        }
+        $fullname = fullname($USER);
 
         $precheck = new \local_proctorcore\local\precheck_service();
         $token = $precheck->issue_token((int) $this->quiz->id, (int) $USER->id);
@@ -239,7 +245,11 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         if (!function_exists('local_proctorcore_render_identity_panel')) {
             throw new \moodle_exception('error:missinglocalplugin', 'quizaccess_proctorcore');
         }
-        $mform->addElement('html', local_proctorcore_render_identity_panel($identitypanelid));
+        $mform->addElement('html', local_proctorcore_render_identity_panel(
+            $identitypanelid,
+            $fullname,
+            $enrollmentrequired
+        ));
 
         $hidden = [
             'proctorcore_preflight_passed' => 0,
@@ -309,18 +319,22 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'sesskey' => sesskey(),
             'required' => !empty($config->requireidentity),
             'serverHealthy' => $serverhealthy,
+            'enrollmentRequired' => $enrollmentrequired,
+            'fullName' => $fullname,
             'strings' => [
                 'waitingForPrecheck' => get_string('identity:waitingforprecheck', 'local_proctorcore'),
                 'ready' => get_string('identity:ready', 'local_proctorcore'),
                 'lookStraight' => get_string('identity:lookstraight', 'local_proctorcore'),
-                'turnLeft' => get_string('identity:turnleft', 'local_proctorcore'),
-                'turnRight' => get_string('identity:turnright', 'local_proctorcore'),
                 'comparing' => get_string('identity:comparing', 'local_proctorcore'),
+                'enrolling' => get_string('identity:enrolling', 'local_proctorcore'),
                 'passed' => get_string('identity:passed', 'local_proctorcore'),
+                'enrolled' => get_string('identity:enrolled', 'local_proctorcore'),
+                'needsReview' => get_string('identity:needsreview', 'local_proctorcore'),
                 'failed' => get_string('identity:failed', 'local_proctorcore'),
                 'notRequired' => get_string('precheck:notrequired', 'local_proctorcore'),
                 'serviceUnavailable' => get_string('identity:serviceunavailable', 'local_proctorcore'),
                 'invalidResponse' => get_string('capture:invalidresponse', 'local_proctorcore'),
+                'confirmationRequired' => get_string('identity:confirmationrequired', 'local_proctorcore'),
             ],
         ]]);
     }
