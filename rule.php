@@ -410,11 +410,15 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         try {
             $session = $service->ensure_active_session((int) $attempt->id, (int) $USER->id);
             if (!function_exists('local_proctorcore_require_heartbeat')
+                    || !function_exists('local_proctorcore_require_capture')
+                    || !function_exists('local_proctorcore_require_violation_monitor')
                     || !function_exists('local_proctorcore_get_reconnect_url')) {
                 throw new \moodle_exception('error:missingrecoveryapi', 'quizaccess_proctorcore');
             }
 
+            local_proctorcore_require_capture((int) $session->id);
             local_proctorcore_require_heartbeat((int) $session->id);
+            local_proctorcore_require_violation_monitor((int) $session->id);
             $page->requires->css('/mod/quiz/accessrule/proctorcore/styles.css');
             $page->requires->js_call_amd('quizaccess_proctorcore/recovery_ui', 'init', [[
                 'sessionId' => (int) $session->id,
