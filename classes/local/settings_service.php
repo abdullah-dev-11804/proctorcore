@@ -91,6 +91,12 @@ final class settings_service {
         $requireidentity = empty($quiz->proctorcore_requireidentity) ? 0 : 1;
         $allowresume = empty($quiz->proctorcore_allowresume) ? 0 : 1;
         $window = min(3600, max(60, (int) ($quiz->proctorcore_resumewindowsecs ?? 600)));
+        $mismatchmode = (string) ($quiz->proctorcore_identitymismatchmode ?? '');
+        if (!in_array($mismatchmode, ['', 'block', 'review', 'fail'], true)) {
+            $mismatchmode = '';
+        }
+        $thresholdinput = trim((string) ($quiz->proctorcore_identitythreshold ?? ''));
+        $identitythreshold = $thresholdinput === '' ? null : min(1.0, max(0.85, (float) $thresholdinput));
 
         $existing = $DB->get_record(self::TABLE, [
             'companyid' => $companyid,
@@ -127,6 +133,8 @@ final class settings_service {
             $existing->requiretechcheck = ($requirecamera || $requiremicrophone || $requireidentity) ? 1 : 0;
             $existing->allowresume = $allowresume;
             $existing->resumewindowsecs = $window;
+            $existing->identitymismatchmode = $mismatchmode !== '' ? $mismatchmode : null;
+            $existing->identitythreshold = $identitythreshold;
             $existing->settingsjson = json_encode($json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $existing->timemodified = $now;
             $existing->usermodified = $userid ?: null;
@@ -147,6 +155,8 @@ final class settings_service {
             'resumewindowsecs' => $window,
             'ruleshtml' => null,
             'settingsjson' => json_encode($json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'identitymismatchmode' => $mismatchmode !== '' ? $mismatchmode : null,
+            'identitythreshold' => $identitythreshold,
             'timecreated' => $now,
             'timemodified' => $now,
             'usermodified' => $userid ?: null,
@@ -324,6 +334,10 @@ final class settings_service {
         $config->warningtimes = (string) ($extra['warningtimes'] ?? '15,5');
         $config->warningcount = (int) ($extra['warningcount']
             ?? count(self::parse_warning_times($config->warningtimes)));
+        $config->identitymismatchmode = (string) ($config->identitymismatchmode ?? '');
+        $config->identitythreshold = $config->identitythreshold === null
+            ? null
+            : min(1.0, max(0.85, (float) $config->identitythreshold));
         $config->source = 'local_proctorcore_quizcfg';
         return $config;
     }
@@ -356,6 +370,8 @@ final class settings_service {
             'warningsenabled' => (int) ($legacy->warningsenabled ?? 1),
             'warningcount' => (int) ($legacy->warningcount ?? 2),
             'warningtimes' => (string) ($legacy->warningtimes ?? '15,5'),
+            'identitymismatchmode' => '',
+            'identitythreshold' => null,
             'source' => 'quizaccess_sentalproctoring',
         ];
     }
@@ -387,6 +403,8 @@ final class settings_service {
             'warningsenabled' => 1,
             'warningcount' => 2,
             'warningtimes' => '15,5',
+            'identitymismatchmode' => '',
+            'identitythreshold' => null,
             'source' => 'defaults',
         ];
     }

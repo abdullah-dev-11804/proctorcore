@@ -13,4 +13,9 @@ final class gate_service_test extends \advanced_testcase {
         $this->assertSame([15, 5],
             \quizaccess_proctorcore\local\settings_service::parse_warning_times('5, 15, 5'));
     }
+
+    public function test_warning_times_ignore_invalid_values(): void {
+        $this->assertSame([30, 10],
+            \quizaccess_proctorcore\local\settings_service::parse_warning_times('bad, -1, 10, 30'));
+    }
 }

@@ -91,7 +91,8 @@ final class gate_service {
         if ($session->techcheckstatus !== 'passed') {
             throw new \moodle_exception('error:precheckpending', 'quizaccess_proctorcore');
         }
-        if (!in_array((string) $session->identitystatus, ['passed', 'notrequired'], true)) {
+        if (!in_array((string) $session->identitystatus,
+                ['passed', 'needs_review', 'failed_allowed', 'notrequired'], true)) {
             throw new \moodle_exception('error:identitypending', 'quizaccess_proctorcore');
         }
 

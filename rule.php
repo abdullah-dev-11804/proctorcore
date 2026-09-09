@@ -188,7 +188,8 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $session = $repository->get_by_attempt_and_user((int) $attemptid, (int) $USER->id);
         return !$session
             || $session->techcheckstatus !== 'passed'
-            || !in_array((string) $session->identitystatus, ['passed', 'notrequired'], true);
+            || !in_array((string) $session->identitystatus,
+                ['passed', 'needs_review', 'failed_allowed', 'notrequired'], true);
     }
 
     /**
@@ -507,6 +508,26 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             $mform->hideIf($field, 'proctorcore_enabled', 'notchecked');
         }
 
+        $mform->addElement('select', 'proctorcore_identitymismatchmode',
+            get_string('identitymismatchmode', 'quizaccess_proctorcore'), [
+                '' => get_string('identitymismatchmode_inherit', 'quizaccess_proctorcore'),
+                'block' => get_string('identitymismatchmode_block', 'quizaccess_proctorcore'),
+                'review' => get_string('identitymismatchmode_review', 'quizaccess_proctorcore'),
+                'fail' => get_string('identitymismatchmode_fail', 'quizaccess_proctorcore'),
+            ]);
+        $mform->addHelpButton('proctorcore_identitymismatchmode', 'identitymismatchmode',
+            'quizaccess_proctorcore');
+        $mform->setDefault('proctorcore_identitymismatchmode', '');
+        $mform->hideIf('proctorcore_identitymismatchmode', 'proctorcore_enabled', 'notchecked');
+        $mform->hideIf('proctorcore_identitymismatchmode', 'proctorcore_requireidentity', 'notchecked');
+
+        $mform->addElement('text', 'proctorcore_identitythreshold',
+            get_string('identitythreshold', 'quizaccess_proctorcore'), ['size' => 8, 'placeholder' => '0.85']);
+        $mform->setType('proctorcore_identitythreshold', PARAM_RAW_TRIMMED);
+        $mform->addHelpButton('proctorcore_identitythreshold', 'identitythreshold', 'quizaccess_proctorcore');
+        $mform->hideIf('proctorcore_identitythreshold', 'proctorcore_enabled', 'notchecked');
+        $mform->hideIf('proctorcore_identitythreshold', 'proctorcore_requireidentity', 'notchecked');
+
         $mform->addElement('html', \html_writer::tag('h4',
             get_string('recoveryheading', 'quizaccess_proctorcore'), ['class' => 'mt-4 mb-3']));
         $mform->addElement('advcheckbox', 'proctorcore_allowresume',
@@ -589,6 +610,12 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             }
         }
 
+        $threshold = trim((string) ($data['proctorcore_identitythreshold'] ?? ''));
+        if ($threshold !== '' && (!is_numeric($threshold) || (float) $threshold < 0.85 || (float) $threshold > 1.0)) {
+            $errors['proctorcore_identitythreshold'] =
+                get_string('error:identitythreshold', 'quizaccess_proctorcore');
+        }
+
         if (!empty($data['proctorcore_timerenabled'])) {
             $duration = (int) ($data['proctorcore_durationminutes'] ?? 0);
             if ($duration < 1 || $duration > 10080) {
@@ -641,6 +668,10 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'proctorcore_requiremicrophone' => (int) ($config->requiremicrophone ?? 1),
             'proctorcore_requireidentity' => (int) ($config->requireidentity ?? 1),
             'proctorcore_requiresnapshot' => (int) ($config->requiresnapshot ?? 1),
+            'proctorcore_identitymismatchmode' => (string) ($config->identitymismatchmode ?? ''),
+            'proctorcore_identitythreshold' => $config->identitythreshold === null
+                ? ''
+                : format_float((float) $config->identitythreshold, 4, true, true),
             'proctorcore_allowresume' => (int) ($config->allowresume ?? 1),
             'proctorcore_resumewindowsecs' => (int) ($config->resumewindowsecs ?? 600),
             'proctorcore_timerenabled' => (int) ($config->timerenabled ?? 1),

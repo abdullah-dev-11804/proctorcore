@@ -12,10 +12,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'quizaccess_proctorcore';
-$plugin->version = 2026080700;
+$plugin->version = 2026091000;
 $plugin->requires = 2022041900; // Moodle 4.0+.
 $plugin->dependencies = [
-    'local_proctorcore' => 2026080700, // First-exam face enrollment APIs.
+    'local_proctorcore' => 2026091000,
 ];
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.11.0 - First-exam face enrollment workflow';
+$plugin->maturity = MATURITY_BETA;
+$plugin->release = '0.12.0 - Tenant identity policy overrides';
