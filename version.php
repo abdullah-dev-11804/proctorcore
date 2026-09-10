@@ -12,10 +12,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'quizaccess_proctorcore';
-$plugin->version = 2026091000;
+$plugin->version = 2026091100;
 $plugin->requires = 2022041900; // Moodle 4.0+.
 $plugin->dependencies = [
-    'local_proctorcore' => 2026091000,
+    'local_proctorcore' => 2026091100,
 ];
 $plugin->maturity = MATURITY_BETA;
-$plugin->release = '0.12.0 - Tenant identity policy overrides';
+$plugin->release = '0.13.0 - Candidate experience refresh';

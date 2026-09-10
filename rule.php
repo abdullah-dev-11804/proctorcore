@@ -237,9 +237,6 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $token = $precheck->issue_token((int) $this->quiz->id, (int) $USER->id);
         $panelid = 'local-proctorcore-student-precheck';
 
-        $mform->addElement('header', 'proctorcore_precheck_header',
-            get_string('precheckformheader', 'quizaccess_proctorcore'));
-        $mform->setExpanded('proctorcore_precheck_header');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
 
         $identitypanelid = 'local-proctorcore-student-identity';
