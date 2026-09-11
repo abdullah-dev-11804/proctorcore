@@ -90,6 +90,8 @@ final class settings_service {
         $requiresnapshot = empty($quiz->proctorcore_requiresnapshot) ? 0 : 1;
         $requireidentity = empty($quiz->proctorcore_requireidentity) ? 0 : 1;
         $allowresume = empty($quiz->proctorcore_allowresume) ? 0 : 1;
+        $requirerulesack = empty($quiz->proctorcore_requirerulesack) ? 0 : 1;
+        $ruleshtml = clean_text((string) ($quiz->proctorcore_ruleshtml ?? ''), FORMAT_HTML);
         $window = min(3600, max(60, (int) ($quiz->proctorcore_resumewindowsecs ?? 600)));
         $mismatchmode = (string) ($quiz->proctorcore_identitymismatchmode ?? '');
         if (!in_array($mismatchmode, ['', 'block', 'review', 'fail'], true)) {
@@ -132,6 +134,8 @@ final class settings_service {
             $existing->requireidentity = $requireidentity;
             $existing->requiretechcheck = ($requirecamera || $requiremicrophone || $requireidentity) ? 1 : 0;
             $existing->allowresume = $allowresume;
+            $existing->requirerulesack = $requirerulesack;
+            $existing->ruleshtml = $ruleshtml !== '' ? $ruleshtml : null;
             $existing->resumewindowsecs = $window;
             $existing->identitymismatchmode = $mismatchmode !== '' ? $mismatchmode : null;
             $existing->identitythreshold = $identitythreshold;
@@ -150,10 +154,10 @@ final class settings_service {
             'enabled' => $enabled,
             'requireidentity' => $requireidentity,
             'requiretechcheck' => ($requirecamera || $requiremicrophone || $requireidentity) ? 1 : 0,
-            'requirerulesack' => 1,
+            'requirerulesack' => $requirerulesack,
             'allowresume' => $allowresume,
             'resumewindowsecs' => $window,
-            'ruleshtml' => null,
+            'ruleshtml' => $ruleshtml !== '' ? $ruleshtml : null,
             'settingsjson' => json_encode($json, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'identitymismatchmode' => $mismatchmode !== '' ? $mismatchmode : null,
             'identitythreshold' => $identitythreshold,
@@ -328,6 +332,8 @@ final class settings_service {
         $config->requiremicrophone = (int) ($extra['requiremicrophone'] ?? (int) $config->requiretechcheck);
         $config->requiresnapshot = (int) ($extra['requiresnapshot'] ?? 1);
         $config->requireidentity = (int) ($extra['requireidentity'] ?? (int) $config->requireidentity);
+        $config->requirerulesack = (int) ($config->requirerulesack ?? 0);
+        $config->ruleshtml = (string) ($config->ruleshtml ?? '');
         $config->timerenabled = (int) ($extra['timerenabled'] ?? 1);
         $config->durationminutes = max(1, (int) ($extra['durationminutes'] ?? 120));
         $config->warningsenabled = (int) ($extra['warningsenabled'] ?? 1);
@@ -359,6 +365,7 @@ final class settings_service {
             'requireidentity' => (int) ($legacy->requiresnapshot ?? 1),
             'requiretechcheck' => (!empty($legacy->requirecamera) || !empty($legacy->requiremicrophone)) ? 1 : 0,
             'requirerulesack' => 1,
+            'ruleshtml' => '',
             'allowresume' => 1,
             'resumewindowsecs' => 600,
             'requirehttps' => (int) ($legacy->requirehttps ?? 1),
@@ -392,6 +399,7 @@ final class settings_service {
             'requireidentity' => 1,
             'requiretechcheck' => 1,
             'requirerulesack' => 1,
+            'ruleshtml' => '',
             'allowresume' => 1,
             'resumewindowsecs' => 600,
             'requirehttps' => 1,

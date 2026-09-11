@@ -249,6 +249,10 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             $enrollmentrequired
         ));
 
+        (new \local_proctorcore\local\participant_field_service())
+            ->add_preflight_fields($mform, $companyid, (int) $USER->id);
+        (new \local_proctorcore\local\rules_service())->add_preflight_field($mform, $config);
+
         $hidden = [
             'proctorcore_preflight_passed' => 0,
             'proctorcore_preflight_server' => 0,
@@ -364,6 +368,17 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
                 (array) $data,
                 $config
             );
+        $companyid = function_exists('local_proctorcore_get_user_companyid')
+            ? local_proctorcore_get_user_companyid((int) $USER->id, (int) $this->quiz->course)
+            : 0;
+        $newerrors = array_merge($newerrors,
+            (new \local_proctorcore\local\participant_field_service())->validate_and_remember(
+                (array) $data, (int) $this->quiz->id, $companyid, (int) $USER->id
+            ),
+            (new \local_proctorcore\local\rules_service())->validate_and_remember(
+                (array) $data, (int) $this->quiz->id, (int) $USER->id, $config
+            )
+        );
         return array_merge($errors, $newerrors);
     }
 
@@ -379,9 +394,15 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         if (!$attemptid) {
             return;
         }
-        $this->get_gate_service()->complete_preflight_and_start(
+        $session = $this->get_gate_service()->complete_preflight_and_start(
             (int) $attemptid,
             (int) $USER->id
+        );
+        (new \local_proctorcore\local\participant_field_service())->persist_for_session(
+            (int) $session->id, (int) $this->quiz->id, (int) $USER->id
+        );
+        (new \local_proctorcore\local\rules_service())->persist_for_session(
+            (int) $session->id, (int) $this->quiz->id, (int) $USER->id
         );
     }
 
@@ -505,6 +526,17 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             $mform->hideIf($field, 'proctorcore_enabled', 'notchecked');
         }
 
+        $mform->addElement('advcheckbox', 'proctorcore_requirerulesack',
+            get_string('requirerulesack', 'quizaccess_proctorcore'));
+        $mform->setDefault('proctorcore_requirerulesack', 1);
+        $mform->hideIf('proctorcore_requirerulesack', 'proctorcore_enabled', 'notchecked');
+        $mform->addElement('textarea', 'proctorcore_ruleshtml',
+            get_string('ruleshtml', 'quizaccess_proctorcore'), ['rows' => 8]);
+        $mform->setType('proctorcore_ruleshtml', PARAM_RAW);
+        $mform->addHelpButton('proctorcore_ruleshtml', 'ruleshtml', 'quizaccess_proctorcore');
+        $mform->hideIf('proctorcore_ruleshtml', 'proctorcore_enabled', 'notchecked');
+        $mform->hideIf('proctorcore_ruleshtml', 'proctorcore_requirerulesack', 'notchecked');
+
         $mform->addElement('select', 'proctorcore_identitymismatchmode',
             get_string('identitymismatchmode', 'quizaccess_proctorcore'), [
                 '' => get_string('identitymismatchmode_inherit', 'quizaccess_proctorcore'),
@@ -599,6 +631,11 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             return $errors;
         }
 
+        if (!empty($data['proctorcore_requirerulesack'])
+                && trim(html_to_text((string) ($data['proctorcore_ruleshtml'] ?? ''), 0, false)) === '') {
+            $errors['proctorcore_ruleshtml'] = get_string('error:rulesrequired', 'quizaccess_proctorcore');
+        }
+
         if (!empty($data['proctorcore_allowresume'])) {
             $seconds = (int) ($data['proctorcore_resumewindowsecs'] ?? 0);
             if ($seconds < 60 || $seconds > 3600) {
@@ -665,6 +702,8 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'proctorcore_requiremicrophone' => (int) ($config->requiremicrophone ?? 1),
             'proctorcore_requireidentity' => (int) ($config->requireidentity ?? 1),
             'proctorcore_requiresnapshot' => (int) ($config->requiresnapshot ?? 1),
+            'proctorcore_requirerulesack' => (int) ($config->requirerulesack ?? 1),
+            'proctorcore_ruleshtml' => (string) ($config->ruleshtml ?? ''),
             'proctorcore_identitymismatchmode' => (string) ($config->identitymismatchmode ?? ''),
             'proctorcore_identitythreshold' => $config->identitythreshold === null
                 ? ''
