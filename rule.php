@@ -322,7 +322,6 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'required' => !empty($config->requireidentity),
             'serverHealthy' => $serverhealthy,
             'enrollmentRequired' => $enrollmentrequired,
-            'activeChallenge' => false,
             'fullName' => $fullname,
             'strings' => [
                 'waitingForPrecheck' => get_string('identity:waitingforprecheck', 'local_proctorcore'),
@@ -340,6 +339,8 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
                 'serviceUnavailable' => get_string('identity:serviceunavailable', 'local_proctorcore'),
                 'invalidResponse' => get_string('capture:invalidresponse', 'local_proctorcore'),
                 'confirmationRequired' => get_string('identity:confirmationrequired', 'local_proctorcore'),
+                'preparingChallenge' => get_string('identity:preparingchallenge', 'local_proctorcore'),
+                'challengeComplete' => get_string('identity:challengecomplete', 'local_proctorcore'),
             ],
         ]]);
     }
