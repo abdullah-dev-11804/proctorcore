@@ -340,6 +340,8 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
                 'invalidResponse' => get_string('capture:invalidresponse', 'local_proctorcore'),
                 'confirmationRequired' => get_string('identity:confirmationrequired', 'local_proctorcore'),
                 'preparingChallenge' => get_string('identity:preparingchallenge', 'local_proctorcore'),
+                'challengeGetReady' => get_string('identity:challengegetready', 'local_proctorcore'),
+                'holdPosition' => get_string('identity:holdposition', 'local_proctorcore'),
                 'challengeComplete' => get_string('identity:challengecomplete', 'local_proctorcore'),
             ],
         ]]);
