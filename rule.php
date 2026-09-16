@@ -186,6 +186,14 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
 
         $repository = new \local_proctorcore\local\session_repository();
         $session = $repository->get_by_attempt_and_user((int) $attemptid, (int) $USER->id);
+        if ($session && in_array((string) $session->status, ['abandoned', 'expired'], true)) {
+            (new \local_proctorcore\local\precheck_service())->prepare_reentry(
+                (int) $this->quiz->id,
+                (int) $USER->id,
+                (int) $session->id
+            );
+            return true;
+        }
         return !$session
             || $session->techcheckstatus !== 'passed'
             || !in_array((string) $session->identitystatus,
