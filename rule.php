@@ -247,6 +247,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
 
         $mform->addElement('html', '<div class="local-proctorcore-preflight-layout">');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
+        $mform->addElement('html', '<div class="local-proctorcore-preflight-details">');
 
         $identitypanelid = 'local-proctorcore-student-identity';
         if (!function_exists('local_proctorcore_render_identity_panel')) {
@@ -261,6 +262,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         (new \local_proctorcore\local\participant_field_service())
             ->add_preflight_fields($mform, $companyid, (int) $USER->id);
         (new \local_proctorcore\local\rules_service())->add_preflight_field($mform, $config);
+        $mform->addElement('html', '</div>');
         $mform->addElement('html', '</div>');
 
         $hidden = [
