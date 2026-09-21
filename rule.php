@@ -245,6 +245,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $token = $precheck->issue_token((int) $this->quiz->id, (int) $USER->id);
         $panelid = 'local-proctorcore-student-precheck';
 
+        $mform->addElement('html', '<div class="local-proctorcore-preflight-layout">');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
 
         $identitypanelid = 'local-proctorcore-student-identity';
@@ -260,6 +261,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         (new \local_proctorcore\local\participant_field_service())
             ->add_preflight_fields($mform, $companyid, (int) $USER->id);
         (new \local_proctorcore\local\rules_service())->add_preflight_field($mform, $config);
+        $mform->addElement('html', '</div>');
 
         $hidden = [
             'proctorcore_preflight_passed' => 0,
