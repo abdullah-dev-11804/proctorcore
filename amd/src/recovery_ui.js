@@ -51,25 +51,25 @@ define([], function() {
             const strings = config.strings || {};
             const reconnectUrl = String(config.reconnectUrl || '');
 
-            setState('connected', strings.connected || 'Proctoring connection active', '', '');
+            setState('connected', strings.connected || '', '', '');
             window.addEventListener('proctorcore:heartbeat', function() {
-                setState('connected', strings.connected || 'Proctoring connection active', '', '');
+                setState('connected', strings.connected || '', '', '');
             });
             window.addEventListener('proctorcore:connectionlost', function() {
-                setState('lost', strings.lost || 'Connection lost', '', '');
+                setState('lost', strings.lost || '', '', '');
             });
             window.addEventListener('proctorcore:interrupted', function(event) {
                 const detail = event.detail || {};
                 setState('interrupted',
-                    strings.interrupted || 'Session interrupted. Reconnect to continue.',
+                    strings.interrupted || '',
                     detail.reconnectUrl || reconnectUrl,
-                    strings.reconnect || 'Reconnect and continue');
+                    strings.reconnect || '');
             });
             window.addEventListener('offline', function() {
-                setState('lost', strings.lost || 'Connection lost', '', '');
+                setState('lost', strings.lost || '', '', '');
             });
             window.addEventListener('online', function() {
-                setState('reconnecting', strings.reconnecting || 'Reconnecting…', '', '');
+                setState('reconnecting', strings.reconnecting || '', '', '');
             });
         },
     };

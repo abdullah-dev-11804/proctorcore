@@ -363,6 +363,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
                 'qualityReady' => get_string('identity:qualityready', 'local_proctorcore'),
                 'qualityTimeout' => get_string('identity:qualitytimeout', 'local_proctorcore'),
                 'retry' => get_string('identity:retry', 'local_proctorcore'),
+                'cameraPreviewUnavailable' => get_string('identity:camerapreviewunavailable', 'local_proctorcore'),
             ],
         ]]);
     }
@@ -522,6 +523,8 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'tooDark' => get_string('precheck:toodark', 'local_proctorcore'),
             'cameraRequiredFirst' => get_string('precheck:camerarequiredfirst', 'local_proctorcore'),
             'snapshotCaptured' => get_string('precheck:snapshotcaptured', 'local_proctorcore'),
+            'cameraPreviewNotReady' => get_string('precheck:camerapreviewnotready', 'local_proctorcore'),
+            'cameraPreviewTimedOut' => get_string('precheck:camerapreviewtimedout', 'local_proctorcore'),
         ];
     }
 
