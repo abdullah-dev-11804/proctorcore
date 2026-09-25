@@ -359,6 +359,10 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
                 'passiveCheck' => get_string('identity:passivecheck', 'local_proctorcore'),
                 'illuminationCheck' => get_string('identity:illuminationcheck', 'local_proctorcore'),
                 'challengeComplete' => get_string('identity:challengecomplete', 'local_proctorcore'),
+                'qualityChecking' => get_string('identity:qualitychecking', 'local_proctorcore'),
+                'qualityReady' => get_string('identity:qualityready', 'local_proctorcore'),
+                'qualityTimeout' => get_string('identity:qualitytimeout', 'local_proctorcore'),
+                'retry' => get_string('identity:retry', 'local_proctorcore'),
             ],
         ]]);
     }
