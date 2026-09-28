@@ -245,6 +245,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $token = $precheck->issue_token((int) $this->quiz->id, (int) $USER->id);
         $panelid = 'local-proctorcore-student-precheck';
 
+        (new \local_proctorcore\local\rules_service())->add_proctoring_warning($mform);
         $mform->addElement('html', '<div class="local-proctorcore-preflight-layout">');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
         $mform->addElement('html', '<div class="local-proctorcore-preflight-details">');
