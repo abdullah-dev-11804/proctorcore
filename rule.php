@@ -113,7 +113,9 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             );
         }
 
-        return implode('<br>', $parts);
+        $warning = (new \local_proctorcore\local\rules_service())->render_proctoring_warning();
+        $summary = html_writer::div(implode('<br>', $parts), 'local-proctorcore-quiz-summary');
+        return $warning . $summary;
     }
 
     /**
@@ -245,7 +247,6 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
         $token = $precheck->issue_token((int) $this->quiz->id, (int) $USER->id);
         $panelid = 'local-proctorcore-student-precheck';
 
-        (new \local_proctorcore\local\rules_service())->add_proctoring_warning($mform);
         $mform->addElement('html', '<div class="local-proctorcore-preflight-layout">');
         $mform->addElement('html', local_proctorcore_render_precheck_panel($panelid, false));
         $mform->addElement('html', '<div class="local-proctorcore-preflight-details">');
@@ -526,6 +527,7 @@ class quizaccess_proctorcore extends quizaccess_proctorcore_parent {
             'snapshotCaptured' => get_string('precheck:snapshotcaptured', 'local_proctorcore'),
             'cameraPreviewNotReady' => get_string('precheck:camerapreviewnotready', 'local_proctorcore'),
             'cameraPreviewTimedOut' => get_string('precheck:camerapreviewtimedout', 'local_proctorcore'),
+            'rulesRequired' => get_string('rules:required', 'local_proctorcore'),
         ];
     }
 
